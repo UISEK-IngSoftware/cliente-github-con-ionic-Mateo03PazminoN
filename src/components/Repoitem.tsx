@@ -1,22 +1,25 @@
-import { IonLabel, IonItem, IonThumbnail
+import{ IonItem, IonLabel, IonThumbnail } from '@ionic/react';
+import './RepoItem.css';
+import { RepositoryItem } from '../interfaces/RepositoryItem';
 
- } from '@ionic/react';
-import './Repoitem.css';
 
-interface RepoProps {
-  name: string;
-  imageUrl: string;
-}
-
-const Repoitem: React.FC<RepoProps> = ({ name, imageUrl }) => {
+const RepoItem: React.FC<{repo: RepositoryItem}> = ({ repo }) => {
   return (
     <IonItem>
-        <IonThumbnail slot="start">
-            <img src={imageUrl} alt={name} />
-        </IonThumbnail>
-        <IonLabel>{name}</IonLabel>
+      <IonThumbnail slot="start">
+        <img 
+        src={repo.imageUrl ||"https://r-charts.com/es/miscelanea/procesamiento-imagenes-magick_files/figure-html/importar-imagen-r.png"} 
+        alt={repo.name} />
+      </IonThumbnail>
+      <IonLabel>
+        <h2>{repo.name}</h2>
+        <p>{repo.description}</p>
+        <p>Propietario: {repo.owner}</p>
+        <p>Lenguaje: {repo.language}</p>
+        </IonLabel>
     </IonItem>
+    
   );
 };
 
-export default Repoitem;
+export default RepoItem;
