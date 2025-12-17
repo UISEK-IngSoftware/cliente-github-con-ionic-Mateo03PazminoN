@@ -1,9 +1,23 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, useIonViewDidEnter } from '@ionic/react';
 import { IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle } from '@ionic/react';
 import './Tab3.css';
+import { useState } from 'react';
+import { UserInfo } from '../interfaces/UserInfo';
+import { getUserInfo } from '../services/GithubService';
 
 
 const Tab3: React.FC = () => {
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+
+  const loadUserInfo = async () => {
+    const info = await getUserInfo();
+    setUserInfo(info);
+  };
+
+  useIonViewDidEnter(() => {
+    loadUserInfo();
+  })
+
   return (
     <IonPage>
       <IonHeader>
@@ -18,13 +32,13 @@ const Tab3: React.FC = () => {
           </IonToolbar>
         </IonHeader>
         <IonCard>
-      <img alt="Silhouette of mountains" src="https://upload.wikimedia.org/wikipedia/en/thumb/d/d7/Harry_Potter_character_poster.jpg/250px-Harry_Potter_character_poster.jpg" />
+      <img alt={userInfo?.name} src={userInfo?.avatar_url} />
       <IonCardHeader>
-        <IonCardTitle>Mateo Pazmiño</IonCardTitle>
-        <IonCardSubtitle>Mateo03PazminoN</IonCardSubtitle>
+        <IonCardTitle>{userInfo?.name}</IonCardTitle>
+        <IonCardSubtitle>{userInfo?.login}</IonCardSubtitle>
       </IonCardHeader>
 
-      <IonCardContent>Soy un desarrollador de software apasionado a la tegnologia y a la magia</IonCardContent>
+      <IonCardContent>{userInfo?.bio}</IonCardContent>
     </IonCard>
       </IonContent>
     </IonPage>

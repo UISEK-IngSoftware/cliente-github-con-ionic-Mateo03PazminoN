@@ -1,8 +1,9 @@
 import axios from "axios";
 import { RepositoryItem } from "../interfaces/RepositoryItem";
+import { UserInfo } from "../interfaces/UserInfo";
 
-const GITHUB_API_URL = "https://api.github.com/";
-const GITHUB_API_TOKEN = "ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+const GITHUB_API_URL = import.meta.env.VITE_API_URL;
+const GITHUB_API_TOKEN = import.meta.env.VITE_GITHUB_API_TOKEN;
 
 export const fetchRepositories = async (): Promise<RepositoryItem[]> => {
     try {
@@ -14,6 +15,7 @@ export const fetchRepositories = async (): Promise<RepositoryItem[]> => {
                 per_page: 100,
                 sort: "created",
                 direction: "desc",
+                affiliation: "owner"
             }
         });
 
@@ -31,3 +33,37 @@ export const fetchRepositories = async (): Promise<RepositoryItem[]> => {
     }
 }
 
+export const createRepository = async (repo: RepositoryItem): Promise<void> => {
+    try{
+        const response = await axios.post(`${GITHUB_API_URL}user/repos`, repo, {
+            headers: {
+            Authorization: `Bearer ${GITHUB_API_TOKEN}`,
+            }
+        });
+        console.log("Repositorio ingresado", response.data);
+                        
+    }catch (error) {
+        console.error("Error al crear repositorio", error);
+    }
+};
+
+export const getUserInfo = async () : Promise<UserInfo> => {
+    try {
+        const response = await axios.get(`${GITHUB_API_URL}user`, {
+            headers: {
+                Authorization: `Bearer ${GITHUB_API_TOKEN}`,
+            }
+        });
+        return response.data as UserInfo;
+
+    } catch (error) {
+        console.error("Error al obtener información del ususario", error);
+        const userNotFound : UserInfo = {
+            login: "undefined",
+            name: "Usuario no encontrado",
+            bio: "No se pudo obtener la información del usuario",
+            avatar_url: "https://cdn-icons-png.flaticon.com/512/17450/17450410.png"
+        }
+        return userNotFound;
+    }
+};
