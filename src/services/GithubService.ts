@@ -3,6 +3,17 @@ import { RepositoryItem } from "../interfaces/RepositoryItem";
 import { UserInfo } from "../interfaces/UserInfo";
 import AuthService from "./AuthService";
 
+// Tipo mínimo para mapear la respuesta parcial de la API de GitHub
+interface GithubRepo {
+    name: string;
+    description: string | null;
+    owner?: {
+        avatar_url?: string | null;
+        login?: string | null;
+    } | null;
+    language?: string | null;
+}
+
 const GITHUB_API_URL = import.meta.env.VITE_API_URL;
 
 const githubApi = axios.create({
@@ -30,12 +41,13 @@ export const fetchRepositories = async (): Promise<RepositoryItem[]> => {
             }
         });
 
-        const repositories: RepositoryItem[] = response.data.map((repo: any) => ({
+        const data = response.data as GithubRepo[];
+        const repositories: RepositoryItem[] = data.map((repo) => ({
             name: repo.name,
-            description: repo.description ? repo.description : null,
-            imageUrl: repo.owner ? repo.owner.avatar_url : null,
-            owner: repo.owner ? repo.owner.login : null,
-            language: repo.language ? repo.language : null,
+            description: repo.description ?? null,
+            imageUrl: repo.owner?.avatar_url ?? null,
+            owner: repo.owner?.login ?? null,
+            language: repo.language ?? null,
         }));
         return repositories;
     } catch (error){
@@ -67,5 +79,41 @@ export const getUserInfo = async () : Promise<UserInfo> => {
             avatar_url: "https://cdn-icons-png.flaticon.com/512/17450/17450410.png"
         }
         return userNotFound;
+    }
+};
+
+// --- Nuevas funciones añadidas para PUT (PATCH) y DELETE ---
+
+/**
+ * Actualiza un repositorio existente. GitHub usa PATCH para actualizaciones parciales.
+ * @param owner El login del propietario del repositorio.
+ * @param repoName El nombre actual del repositorio.
+ * @param newData Los datos a actualizar (ej: { name: 'nuevo-nombre', description: 'desc' })
+ */
+export const updateRepository = async (owner: string, repoName: string, newData: { name?: string, description?: string }): Promise<RepositoryItem | null> => {
+    try {
+        // La URL de GitHub para editar es /repos/{owner}/{repo}
+        const response = await githubApi.patch(`/repos/${owner}/${repoName}`, newData);
+        console.log("Repositorio actualizado", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Error al actualizar repositorio", error);
+        throw error; // Es mejor relanzar el error para manejarlo en la UI
+    }
+};
+
+/**
+ * Elimina un repositorio existente.
+ * @param owner El login del propietario del repositorio.
+ * @param repoName El nombre del repositorio a eliminar.
+ */
+export const deleteRepository = async (owner: string, repoName: string): Promise<void> => {
+    try {
+        // La URL de GitHub para eliminar es /repos/{owner}/{repo}
+        await githubApi.delete(`/repos/${owner}/${repoName}`);
+        console.log(`Repositorio ${repoName} eliminado con éxito.`);
+    } catch (error) {
+        console.error("Error al eliminar repositorio", error);
+        throw error; // Relanzar para manejo en la UI
     }
 };
