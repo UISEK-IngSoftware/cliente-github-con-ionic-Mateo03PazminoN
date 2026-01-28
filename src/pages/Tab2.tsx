@@ -4,10 +4,13 @@ import { IonButton, IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from 
   import { useHistory } from 'react-router';
   import { RepositoryItem } from '../interfaces/RepositoryItem';
   import { createRepository } from '../services/GithubService';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { useState } from 'react';
 
   const Tab2: React.FC = () => {
 
     const history = useHistory();
+    const [loading, setLoading] = useState(false);
 
     const repoFormData : RepositoryItem = {
       name: '',
@@ -30,12 +33,15 @@ import { IonButton, IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from 
         alert('El nombre del repositorio es obligatorio.');
         return;
       }
+      setLoading(true);
       createRepository(repoFormData)
       .then(() => {history.push('/tab1');})
       .catch(() => {
         alert('Error al crear el repositorio. Inténtalo de nuevo.');
+          }). finally(() =>{
+            setLoading(false);
           });
-    }
+    };
 
     return (
       <IonPage>
@@ -73,6 +79,7 @@ import { IonButton, IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from 
             </IonButton>
           </div>
         </IonContent>
+        <LoadingSpinner isOpen={loading} />
       </IonPage>
     );
   };

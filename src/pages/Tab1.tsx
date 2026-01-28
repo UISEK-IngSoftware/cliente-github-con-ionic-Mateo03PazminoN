@@ -20,14 +20,19 @@ import { RepositoryItem } from '../interfaces/RepositoryItem';
 import { fetchRepositories, deleteRepository, updateRepository } from '../services/GithubService';
 import Repoitem from '../components/Repoitem';
 import { trashOutline, createOutline } from 'ionicons/icons';
+import LoadingSpinner from '../components/LoadingSpinner';
+
 
 const Tab1: React.FC = () => {
+  const [loading, setLoading] = useState(false);
   const [repos, setRepos] = useState<RepositoryItem[]>([]);
   const [presentAlert] = useIonAlert();
 
   const loadRepos = async () => {
+    setLoading(true);
     const reposData = await fetchRepositories();
     setRepos(reposData);
+    setLoading(false);
   };
 
   useIonViewDidEnter(() => {
@@ -50,18 +55,18 @@ const Tab1: React.FC = () => {
               return;
             }
 
-            // Optimistic update: remove from UI immediately
+            setLoading(true); // ACTIVAR LOADING
             const previous = repos;
             setRepos((prev) => prev.filter(r => !(r.owner === repo.owner && r.name === repo.name)));
 
             try {
               await deleteRepository(repo.owner, repo.name);
-              // success: list already updated optimistically
             } catch (err) {
               console.error(err);
-              // revert on error
               setRepos(previous);
               presentAlert({ header: 'Error', message: 'No se pudo eliminar el repositorio; los cambios se revirtieron.', buttons: ['OK'] });
+            } finally {
+              setLoading(false); // DESACTIVAR LOADING
             }
           }
         }
@@ -92,7 +97,7 @@ const Tab1: React.FC = () => {
               return;
             }
 
-            // Optimistic update: update UI immediately
+            setLoading(true); // ACTIVAR LOADING
             const previous = repos;
             setRepos((prev) => prev.map(r => (r.owner === repo.owner && r.name === repo.name) ? { ...r, name: newName, description: newDesc ?? null } : r));
 
@@ -101,9 +106,10 @@ const Tab1: React.FC = () => {
               presentAlert({ header: 'Éxito', message: 'Repositorio actualizado.', buttons: ['OK'] });
             } catch (err) {
               console.error(err);
-              // revert on error
               setRepos(previous);
               presentAlert({ header: 'Error', message: 'No se pudo actualizar; los cambios se revirtieron.', buttons: ['OK'] });
+            } finally {
+              setLoading(false); // DESACTIVAR LOADING
             }
           }
         }
@@ -129,7 +135,7 @@ const Tab1: React.FC = () => {
 
         <IonList>
           {repos.map((repo) => (
-            <IonItemSliding key={repo.name}>
+            <IonItemSliding key={`${repo.owner}-${repo.name}`}>
               <IonItemOptions side="start">
                 <IonItemOption color="primary" onClick={() => handleEdit(repo)}>
                   <IonIcon slot="icon-only" icon={createOutline} />
@@ -146,9 +152,12 @@ const Tab1: React.FC = () => {
             </IonItemSliding>
           ))}
         </IonList>
+        <LoadingSpinner isOpen={loading} />
       </IonContent>
     </IonPage>
   );
 };
 
 export default Tab1;
+
+

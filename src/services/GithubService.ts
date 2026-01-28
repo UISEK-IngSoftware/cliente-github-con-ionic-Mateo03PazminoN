@@ -3,7 +3,6 @@ import { RepositoryItem } from "../interfaces/RepositoryItem";
 import { UserInfo } from "../interfaces/UserInfo";
 import AuthService from "./AuthService";
 
-// Tipo mínimo para mapear la respuesta parcial de la API de GitHub
 interface GithubRepo {
     name: string;
     description: string | null;
@@ -82,38 +81,36 @@ export const getUserInfo = async () : Promise<UserInfo> => {
     }
 };
 
-// --- Nuevas funciones añadidas para PUT (PATCH) y DELETE ---
+
 
 /**
- * Actualiza un repositorio existente. GitHub usa PATCH para actualizaciones parciales.
- * @param owner El login del propietario del repositorio.
- * @param repoName El nombre actual del repositorio.
- * @param newData Los datos a actualizar (ej: { name: 'nuevo-nombre', description: 'desc' })
+ * 
+ * @param owner 
+ * @param repoName .
+ *  @param newData 
  */
 export const updateRepository = async (owner: string, repoName: string, newData: { name?: string, description?: string }): Promise<RepositoryItem | null> => {
     try {
-        // La URL de GitHub para editar es /repos/{owner}/{repo}
         const response = await githubApi.patch(`/repos/${owner}/${repoName}`, newData);
         console.log("Repositorio actualizado", response.data);
         return response.data;
     } catch (error) {
         console.error("Error al actualizar repositorio", error);
-        throw error; // Es mejor relanzar el error para manejarlo en la UI
+        throw error; 
     }
 };
 
 /**
- * Elimina un repositorio existente.
- * @param owner El login del propietario del repositorio.
- * @param repoName El nombre del repositorio a eliminar.
+ * @param owner 
+ * @param repoName 
  */
 export const deleteRepository = async (owner: string, repoName: string): Promise<void> => {
     try {
-        // La URL de GitHub para eliminar es /repos/{owner}/{repo}
+        
         await githubApi.delete(`/repos/${owner}/${repoName}`);
         console.log(`Repositorio ${repoName} eliminado con éxito.`);
     } catch (error) {
         console.error("Error al eliminar repositorio", error);
-        throw error; // Relanzar para manejo en la UI
+        throw error; 
     }
 };
